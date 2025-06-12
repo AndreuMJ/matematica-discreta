@@ -79,7 +79,48 @@ class Entrega {
     static final char NAND = '.';
 
     static int exercici1(char[] ops, int[] vars) {
-      throw new UnsupportedOperationException("pendent");
+      //Nombre de variables diferents (de 0 a n-1)
+        int n = Arrays.stream(variables).max().getAsInt() + 1;
+        int totalAssignacions = 1 << n; //2^n assignacions possibles
+
+        boolean sempreVertadera = true;
+        boolean sempreFalsa = true;
+
+        //Recorrem totes les assignacions possibles de valors de veritat
+        for (int mascara = 0; mascara < totalAssignacions; mascara++) {
+            //Assignació dels valors booleans a les variables
+            boolean[] valors = new boolean[n];
+            for (int i = 0; i < n; i++) {
+                valors[i] = (mascara & (1 << i)) != 0;
+            }
+
+            //Avaluació de l'expressió segons la forma ((a op b) op c) op d ...
+            boolean resultat = valors[variables[0]];
+            for (int i = 0; i < operadors.length; i++) {
+                boolean seguent = valors[variables[i + 1]];
+                switch (operadors[i]) {
+                    case CONJ: resultat = resultat && seguent; break;
+                    case DISJ: resultat = resultat || seguent; break;
+                    case IMPL: resultat = !resultat || seguent; break;
+                    case NAND: resultat = !(resultat && seguent); break;
+                    default: throw new IllegalArgumentException("Operador desconegut: " + operadors[i]);
+                }
+            }
+
+            //Comprovam si és sempre certa o sempre falsa
+            if (resultat) {
+                sempreFalsa = false;
+            } else {
+                sempreVertadera = false;
+            }
+
+            //Si ja hem vist un cas vertader i un de fals, no cal continuar
+            if (!sempreVertadera && !sempreFalsa) return -1;
+        }
+
+        //Retornam segons el cas
+        return sempreVertadera ? 1 : 0;
+    }
     }
 
     /*
