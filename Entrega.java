@@ -80,7 +80,7 @@ class Entrega {
 
     static int exercici1(char[] ops, int[] vars) {
       //Nombre de variables diferents (de 0 a n-1)
-        int n = Arrays.stream(variables).max().getAsInt() + 1;
+        int n = Arrays.stream(vars).max().getAsInt() + 1;
         int totalAssignacions = 1 << n; //2^n assignacions possibles
 
         boolean sempreVertadera = true;
@@ -95,15 +95,15 @@ class Entrega {
             }
 
             //Avaluació de l'expressió segons la forma ((a op b) op c) op d ...
-            boolean resultat = valors[variables[0]];
-            for (int i = 0; i < operadors.length; i++) {
-                boolean seguent = valors[variables[i + 1]];
-                switch (operadors[i]) {
+            boolean resultat = valors[vars[0]];
+            for (int i = 0; i < ops.length; i++) {
+                boolean seguent = valors[vars[i + 1]];
+                switch (ops[i]) {
                     case CONJ: resultat = resultat && seguent; break;
                     case DISJ: resultat = resultat || seguent; break;
                     case IMPL: resultat = !resultat || seguent; break;
                     case NAND: resultat = !(resultat && seguent); break;
-                    default: throw new IllegalArgumentException("Operador desconegut: " + operadors[i]);
+                    default: throw new IllegalArgumentException("Operador desconegut: " + ops[i]);
                 }
             }
 
@@ -136,7 +136,7 @@ class Entrega {
     static boolean exercici2(int[] universe, Predicate<Integer> p, Predicate<Integer> q) {
       //1. Comprovar ∀x P(x)
         boolean totsComplertP = true;
-        for (int x : univers) {
+        for (int x : universe) {
             if (!p.test(x)) {
                 totsComplertP = false;
                 break;
@@ -145,7 +145,7 @@ class Entrega {
 
         //2. Comprovar ∃!x Q(x)
         int contarQ = 0;
-        for (int x : univers) {
+        for (int x : universe) {
             if (q.test(x)) {
                 contarQ++;
                 if (contarQ > 1) {
