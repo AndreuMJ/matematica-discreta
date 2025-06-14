@@ -506,82 +506,66 @@ class Entrega {
      * Pista: https://en.wikipedia.org/wiki/Exponentiation_by_squaring
      */
     static int[] exercici1(String msg, int n, int e) {
-    byte[] bytes = msg.getBytes();
-    int[] result = new int[bytes.length / 2];
+        byte[] bytes = msg.getBytes();
+        int[] result = new int[bytes.length / 2];
 
-    for (int i = 0; i < bytes.length; i += 2) {
-        //Combinar dos bytes (caràcters) en un sol enter de 16 bits
-        int bloc = ((bytes[i] & 0xFF) << 8) | (bytes[i + 1] & 0xFF);
-        //Encriptar el bloc amb RSA: bloc^e mod n
-        result[i / 2] = elevar(bloc, e, n);
-    }
+        for (int i = 0; i < bytes.length; i += 2) {
+            int b1 = bytes[i] & 0x7F;       //Ens assegurem que el valor està entre 0 i 127
+            int b2 = bytes[i + 1] & 0x7F;
 
-    return result;
-    }
-
-    /*
-     * Primer, desencriptau el missatge utilitzant xifrat RSA amb la clau pública donada. Després
-     * descodificau el missatge en blocs de longitud 2 amb codificació ASCII (igual que l'exercici
-     * anterior, però al revés).
-     *
-     * Per construir un String a partir d'un array de bytes podeu fer servir el constructor
-     * `new String(byte[])`. Si heu de factoritzar algun nombre, ho podeu fer per força bruta.
-     *
-     * També podeu suposar que:
-     * - La longitud del missatge original és múltiple de 2
-     * - El valor de tots els caràcters originals estava entre 32 i 127.
-     * - La clau pública (n, e) és de la forma vista a les transparències.
-     * - n és major que 2¹⁴, i n² és menor que Integer.MAX_VALUE
-     */
-    static String exercici2(int[] m, int n, int e) {
-    //Calcular la clau privada d mitjançant factorització de n
-    int p = 0, q = 0;
-    for (int i = 2; i <= Math.sqrt(n); i++) {
-        if (n % i == 0) {
-            p = i;
-            q = n / i;
-            break;
+            int bloc = b1 * 128 + b2;       //Codificació de dos caràcters en un enter
+            result[i / 2] = elevar(bloc, e, n); //Encriptació RSA: bloc^e mod n
         }
+
+        return result;
     }
 
-    int phi = (p - 1) * (q - 1);
-    int d = invertir(e, phi);
-
-    byte[] bytes = new byte[m.length * 2];
-
-    for (int i = 0; i < m.length; i++) {
-        int bloc = elevar(m[i], d, n);
-        //Separar el bloc en dos caràcters ASCII de 8 bits
-        bytes[2 * i] = (byte) ((bloc >> 8) & 0xFF);
-        bytes[2 * i + 1] = (byte) (bloc & 0xFF);
-    }
-
-    return new String(bytes);
-    }
-    
-    static int elevar(int base, int exponent, int modul) {
-        long result = 1;
-        long b = base % modul;
-        while (exponent > 0) {
-            if ((exponent & 1) == 1) {
-                result = (result * b) % modul;
+    static String exercici2(int[] m, int n, int e) {
+        //Factorització simple de n = p * q
+        int p = 0, q = 0;
+        for (int i = 2; i * i <= n; i++) {
+            if (n % i == 0) {
+                p = i;
+                q = n / i;
+                break;
             }
-            b = (b * b) % modul;
-            exponent >>= 1;
+        }
+
+        int phi = (p - 1) * (q - 1);        //Càlcul de φ(n)
+        int d = invertir(e, phi);           //Clau privada: inversa modular de e mod φ(n)
+
+        byte[] bytes = new byte[m.length * 2];
+        for (int i = 0; i < m.length; i++) {
+            int bloc = elevar(m[i], d, n);  //Desencriptació RSA: bloc^d mod n
+
+            //Reconstrucció dels dos caràcters originals
+            bytes[2 * i] = (byte) (bloc / 128);
+            bytes[2 * i + 1] = (byte) (bloc % 128);
+        }
+
+        return new String(bytes);
+    }
+
+    static int elevar(int base, int exp, int mod) {
+        //Exponenciació modular eficient (exponentiation by squaring)
+        long result = 1;
+        long b = base % mod;
+        while (exp > 0) {
+            if ((exp & 1) == 1) {
+                result = (result * b) % mod;
+            }
+            b = (b * b) % mod;
+            exp >>= 1;
         }
         return (int) result;
     }
-    
+
     static int invertir(int a, int m) {
-        int m0 = m, t, q;
-        int x0 = 0, x1 = 1;
-
-        if (m == 1)
-            return 0;
-
+        //Algorisme d’Euclides estès per trobar la inversa modular de a mod m
+        int m0 = m, x0 = 0, x1 = 1;
         while (a > 1) {
-            q = a / m;
-            t = m;
+            int q = a / m;
+            int t = m;
             m = a % m;
             a = t;
 
@@ -589,11 +573,7 @@ class Entrega {
             x0 = x1 - q * x0;
             x1 = t;
         }
-
-        if (x1 < 0)
-            x1 += m0;
-
-        return x1;
+        return (x1 + m0) % m0;
     }
     
     static void tests() {
