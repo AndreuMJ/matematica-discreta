@@ -572,7 +572,7 @@ class Entrega {
         return (int) result;
     }
     
-    static int Invertir(int a, int m) {
+    static int invertir(int a, int m) {
         int m0 = m, t, q;
         int x0 = 0, x1 = 1;
 
