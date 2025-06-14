@@ -134,7 +134,29 @@ class Entrega {
      * (∀x : P(x)) <-> (∃!x : Q(x))
      */
     static boolean exercici2(int[] universe, Predicate<Integer> p, Predicate<Integer> q) {
-      throw new UnsupportedOperationException("pendent");
+      //1. Comprovar ∀x P(x)
+        boolean totsComplertP = true;
+        for (int x : univers) {
+            if (!p.test(x)) {
+                totsComplertP = false;
+                break;
+            }
+        }
+
+        //2. Comprovar ∃!x Q(x)
+        int contarQ = 0;
+        for (int x : univers) {
+            if (q.test(x)) {
+                contarQ++;
+                if (contarQ > 1) {
+                    break; //Més d'un, ja podem aturar
+                }
+            }
+        }
+        boolean exactamentUnQ = (contarQ == 1);
+
+        //3. Retornar si són equivalents
+        return totsComplertP == exactamentUnQ;
     }
 
     static void tests() {
