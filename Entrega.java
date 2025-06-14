@@ -121,7 +121,7 @@ class Entrega {
         //Retornam segons el cas
         return sempreVertadera ? 1 : 0;
     }
-    }
+    
 
     /*
      * Aquest mètode té de paràmetre l'univers (representat com un array) i els predicats
@@ -586,5 +586,4 @@ class Entrega {
     }
   }
 }
-
 // vim: set textwidth=100 shiftwidth=2 expandtab :
