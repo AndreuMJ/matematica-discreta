@@ -506,7 +506,17 @@ class Entrega {
      * Pista: https://en.wikipedia.org/wiki/Exponentiation_by_squaring
      */
     static int[] exercici1(String msg, int n, int e) {
-      throw new UnsupportedOperationException("pendent");
+    byte[] bytes = msg.getBytes();
+    int[] result = new int[bytes.length / 2];
+
+    for (int i = 0; i < bytes.length; i += 2) {
+        //Combinar dos bytes (caràcters) en un sol enter de 16 bits
+        int bloc = ((bytes[i] & 0xFF) << 8) | (bytes[i + 1] & 0xFF);
+        //Encriptar el bloc amb RSA: bloc^e mod n
+        result[i / 2] = elevar(bloc, e, n);
+    }
+
+    return result;
     }
 
     /*
@@ -524,9 +534,68 @@ class Entrega {
      * - n és major que 2¹⁴, i n² és menor que Integer.MAX_VALUE
      */
     static String exercici2(int[] m, int n, int e) {
-      throw new UnsupportedOperationException("pendent");
+    //Calcular la clau privada d mitjançant factorització de n
+    int p = 0, q = 0;
+    for (int i = 2; i <= Math.sqrt(n); i++) {
+        if (n % i == 0) {
+            p = i;
+            q = n / i;
+            break;
+        }
     }
 
+    int phi = (p - 1) * (q - 1);
+    int d = invertir(e, phi);
+
+    byte[] bytes = new byte[m.length * 2];
+
+    for (int i = 0; i < m.length; i++) {
+        int bloc = elevar(m[i], d, n);
+        //Separar el bloc en dos caràcters ASCII de 8 bits
+        bytes[2 * i] = (byte) ((bloc >> 8) & 0xFF);
+        bytes[2 * i + 1] = (byte) (bloc & 0xFF);
+    }
+
+    return new String(bytes);
+    }
+    
+    static int elevar(int base, int exponent, int modul) {
+        long result = 1;
+        long b = base % modul;
+        while (exponent > 0) {
+            if ((exponent & 1) == 1) {
+                result = (result * b) % modul;
+            }
+            b = (b * b) % modul;
+            exponent >>= 1;
+        }
+        return (int) result;
+    }
+    
+    static int Invertir(int a, int m) {
+        int m0 = m, t, q;
+        int x0 = 0, x1 = 1;
+
+        if (m == 1)
+            return 0;
+
+        while (a > 1) {
+            q = a / m;
+            t = m;
+            m = a % m;
+            a = t;
+
+            t = x0;
+            x0 = x1 - q * x0;
+            x1 = t;
+        }
+
+        if (x1 < 0)
+            x1 += m0;
+
+        return x1;
+    }
+    
     static void tests() {
       // Exercici 1
       // Codificar i encriptar
