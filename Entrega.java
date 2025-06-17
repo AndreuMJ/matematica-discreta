@@ -379,14 +379,14 @@ class Entrega {
      * Determinau si el graf `g` (no dirigit) té cicles.
      */
     static boolean exercici1(int[][] graf) {
-      // Array per marcar els nodes ja visitats
+      // Array per marcar els nodes visitats
         boolean[] visitat = new boolean[g.length];
 
-        // Recor cada node del graf
+        // Recorrem cada node del graf
         for (int v = 0; v < g.length; v++) {
             // Si no ha estat visitat, comprova si hi ha un cicle a partir d’aquest node
             if (!visitat[v] && teCicle(g, v, -1, visitat)) {
-                return true; // Si es troba un cicle, retorna true
+                return true; // Si troba un cicle, retorna true
             }
         }
 
@@ -400,10 +400,10 @@ class Entrega {
         // Recor els veïns del node actual
         for (int veinat : g[v]) {
             if (!visitat[veinat]) {
-                // Si no ha estat visitat, es fa una crida recursiva
+                // Si no ha estat visitat, fa una crida recursiva
                 if (teCicle(g, veinat, v, visitat)) return true;
             } else if (veinat != pare) {
-                // Si ja ha estat visitat i no és el pare, retorna true que vol dir que s'ha trobat un cicle
+                // Si ja ha estat visitat i no és el pare, hem trobat un cicle
                 return true;
             }
         }
@@ -417,17 +417,18 @@ class Entrega {
      * 10.
      */
     static boolean exercici2(int[][] g1, int[][] g2) {
-      int n = g1.length;
-        if (n != g2.length) return false; // Es comprova que tenguin la mateixa mida
+        int n = g1.length;
+        if (n != g2.length) return false; // Es comprova que tenguin 
+        //la mateixa mida
 
-        //S'inicialitza la permutació
+        // Inicialitza permutació
         int[] perm = new int[n];
         for (int i = 0; i < n; i++) perm[i] = i;
 
         // Prova totes les permutacions possibles
         do {
             if (sónIsomorfs(g1, g2, perm)) return true;
-        } while (nextPermutation(perm));
+        } while (proximaPermutació(perm));
 
         return false; // Cap permutació no ha funcionat
     }
@@ -436,21 +437,32 @@ class Entrega {
         int n = g1.length;
 
         for (int i = 0; i < n; i++) {
-            Set<Integer> veïns1 = new HashSet<>();
+            List<Integer> veïns1 = new ArrayList<>();
             for (int v : g1[i]) veïns1.add(perm[v]);
 
-            Set<Integer> veïns2 = new HashSet<>();
+            List<Integer> veïns2 = new ArrayList<>();
             for (int v : g2[perm[i]]) veïns2.add(v);
 
-            // Compara els conjunts de veïns
-            if (!veïns1.equals(veïns2)) return false;
+            // Compara els conjunts de veïns (sense importar l'ordre)
+            if (!mateixosElements(veïns1, veïns2)) return false;
         }
 
-        return true; // Són isomorfs a aquesta permutació
+        return true; // Són isomorfs, retorna true
+    }
+
+    static boolean mateixosElements(List<Integer> a, List<Integer> b) {
+        if (a.size() != b.size()) return false;
+        for (int val : a) {
+            if (!b.contains(val)) return false;
+        }
+        for (int val : b) {
+            if (!a.contains(val)) return false;
+        }
+        return true;
     }
 
     // Genera la següent permutació 
-    static boolean nextPermutation(int[] a) {
+    static boolean proximaPermutació(int[] a) {
         int i = a.length - 2;
         while (i >= 0 && a[i] >= a[i + 1]) i--;
         if (i < 0) return false;
@@ -465,8 +477,6 @@ class Entrega {
 
         return true;
     }
-
-    
 
     /*
      * Determinau si el graf `g` (no dirigit) és un arbre. Si ho és, retornau el seu recorregut en
@@ -487,7 +497,7 @@ class Entrega {
         // Si algun node no ha estat visitat, no és connex, per tant no és un arbre
         for (boolean v : visitat) if (!v) return null;
 
-        // Convertim la llista a array
+        // Converteix la llista a array
         int[] resultat = new int[postordre.size()];
         for (int i = 0; i < resultat.length; i++) resultat[i] = postordre.get(i);
         return resultat;
@@ -502,7 +512,7 @@ class Entrega {
             if (!comprovaArbreIPostordre(g, veinat, v, visitat, postordre)) return false;
         }
 
-        postordre.add(v); // Afegim al postordre després de visitar fills
+        postordre.add(v); // Afegeix al postordre després de visitar fills
         return true;
     }
 
@@ -533,40 +543,41 @@ class Entrega {
      * Si és impossible, retornau -1.
      */
     static int exercici4(char[][] mapa) {
-      int files = mapa.length;
+     int files = mapa.length;
         int cols = mapa[0].length;
-        int origiX = -1, origiY = -1;
+        int origenX = -1, origiY = -1;
 
         // Cerca la posició inicial 'O'
         for (int i = 0; i < files; i++) {
             for (int j = 0; j < cols; j++) {
                 if (mapa[i][j] == 'O') {
-                    origiX = i;
+                    origenX = i;
                     origiY = j;
                 }
             }
         }
 
-        if (origiX == -1) return -1; // No hi ha origen
-        return caminsMinims(mapa, origiX, origiY);
+        if (origenX == -1) return -1; // No hi ha origen
+        return caminsMinims(mapa, origenX, origiY);
     }
 
-    static int caminsMinims(char[][] mapa, int startX, int startY) {
+    static int caminsMinims(char[][] mapa, int OrigenX, int OrigenY) {
         int files = mapa.length, cols = mapa[0].length;
         boolean[][] visitat = new boolean[files][cols];
-        Queue<int[]> cua = new LinkedList<>();
-        cua.add(new int[]{startX, startY, 0}); // {x, y, distància}
-        visitat[startX][startY] = true;
+        List<int[]> cua = new ArrayList<>();
+        cua.add(new int[]{OrigenX, OrigenY, 0}); // {x, y, distància}
+        visitat[OrigenX][OrigenY] = true;
 
-        int[][] dirs = {{0,1}, {1,0}, {0,-1}, {-1,0}}; // Moviments possibles
+        int[][] direcció = {{0,1}, {1,0}, {0,-1}, {-1,0}}; // Moviments possibles
 
-        while (!cua.isEmpty()) {
-            int[] estat = cua.poll();
+        int index = 0; // Index per simular una cua (FIFO)
+        while (index < cua.size()) {
+            int[] estat = cua.get(index++);
             int x = estat[0], y = estat[1], dist = estat[2];
 
             if (mapa[x][y] == 'D') return dist; // Arribat a la destinació
 
-            for (int[] d : dirs) {
+            for (int[] d : direcció) {
                 int nx = x + d[0], ny = y + d[1];
                 if (nx >= 0 && ny >= 0 && nx < files && ny < cols &&
                     !visitat[nx][ny] && mapa[nx][ny] != '#') {
@@ -578,7 +589,6 @@ class Entrega {
 
         return -1; // No s'ha trobat camí
     }
-
     
     /*
      * Aquí teniu alguns exemples i proves relacionades amb aquests exercicis (vegeu `main`)
