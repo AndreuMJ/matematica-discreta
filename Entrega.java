@@ -49,7 +49,7 @@ import java.util.stream.IntStream;
  * de texte estigui configurat amb codificació UTF-8.
  */
 class Entrega {
-  static final String[] NOMS = {};
+  static final String[] NOMS = {"Andreu Morey Juan", "Miquel Matas Soler", "Antonio José Pérez García"};
 
   /*
    * Aquí teniu els exercicis del Tema 1 (Lògica).
@@ -79,8 +79,49 @@ class Entrega {
     static final char NAND = '.';
 
     static int exercici1(char[] ops, int[] vars) {
-      throw new UnsupportedOperationException("pendent");
+      //Nombre de variables diferents (de 0 a n-1)
+        int n = Arrays.stream(vars).max().getAsInt() + 1;
+        int totalAssignacions = 1 << n; //2^n assignacions possibles
+
+        boolean sempreVertadera = true;
+        boolean sempreFalsa = true;
+
+        //Recorrem totes les assignacions possibles de valors de veritat
+        for (int mascara = 0; mascara < totalAssignacions; mascara++) {
+            //Assignació dels valors booleans a les variables
+            boolean[] valors = new boolean[n];
+            for (int i = 0; i < n; i++) {
+                valors[i] = (mascara & (1 << i)) != 0;
+            }
+
+            //Avaluació de l'expressió segons la forma ((a op b) op c) op d ...
+            boolean resultat = valors[vars[0]];
+            for (int i = 0; i < ops.length; i++) {
+                boolean seguent = valors[vars[i + 1]];
+                switch (ops[i]) {
+                    case CONJ: resultat = resultat && seguent; break;
+                    case DISJ: resultat = resultat || seguent; break;
+                    case IMPL: resultat = !resultat || seguent; break;
+                    case NAND: resultat = !(resultat && seguent); break;
+                    default: throw new IllegalArgumentException("Operador desconegut: " + ops[i]);
+                }
+            }
+
+            //Comprovam si és sempre certa o sempre falsa
+            if (resultat) {
+                sempreFalsa = false;
+            } else {
+                sempreVertadera = false;
+            }
+
+            //Si ja hem vist un cas vertader i un de fals, no cal continuar
+            if (!sempreVertadera && !sempreFalsa) return -1;
+        }
+
+        //Retornam segons el cas
+        return sempreVertadera ? 1 : 0;
     }
+    
 
     /*
      * Aquest mètode té de paràmetre l'univers (representat com un array) i els predicats
@@ -93,7 +134,29 @@ class Entrega {
      * (∀x : P(x)) <-> (∃!x : Q(x))
      */
     static boolean exercici2(int[] universe, Predicate<Integer> p, Predicate<Integer> q) {
-      throw new UnsupportedOperationException("pendent");
+      //1. Comprovar ∀x P(x)
+        boolean totsComplertP = true;
+        for (int x : universe) {
+            if (!p.test(x)) {
+                totsComplertP = false;
+                break;
+            }
+        }
+
+        //2. Comprovar ∃!x Q(x)
+        int contarQ = 0;
+        for (int x : universe) {
+            if (q.test(x)) {
+                contarQ++;
+                if (contarQ > 1) {
+                    break; //Més d'un, ja podem aturar
+                }
+            }
+        }
+        boolean exactamentUnQ = (contarQ == 1);
+
+        //3. Retornar si són equivalents
+        return totsComplertP == exactamentUnQ;
     }
 
     static void tests() {
@@ -315,17 +378,113 @@ class Entrega {
     /*
      * Determinau si el graf `g` (no dirigit) té cicles.
      */
-    static boolean exercici1(int[][] g) {
-      throw new UnsupportedOperationException("pendent");
+    static boolean exercici1(int[][] graf) {
+       int n = graf.length;
+        boolean[] visitat = new boolean[n];
+        int[] pare = new int[n];
+        Arrays.fill(pare, -1);
+
+        for (int vInicial = 0; vInicial < n; vInicial++) {
+            if (!visitat[vInicial]) {
+                ArrayList<Integer> pila = new ArrayList<>();
+                pila.add(vInicial);
+                visitat[vInicial] = true;
+
+                while (!pila.isEmpty()) {
+                    int actual = pila.remove(pila.size() - 1);
+
+                    for (int veinat : graf[actual]) {
+                        if (!visitat[veinat]) {
+                            visitat[veinat] = true;
+                            pare[veinat] = actual;
+                            pila.add(veinat);
+                        } else if (veinat != pare[actual]) {
+                            return true; // Hi ha cicle
+                        }
+                    }
+                }
+            }
+        }
+        return false;
     }
+    
 
     /*
      * Determinau si els dos grafs són isomorfs. Podeu suposar que cap dels dos té ordre major que
      * 10.
      */
     static boolean exercici2(int[][] g1, int[][] g2) {
-      throw new UnsupportedOperationException("pendent");
+      int n = g1.length;
+        if (g2.length != n) return false;
+
+        int[] grausG1 = new int[n];
+        int[] grausG2 = new int[n];
+
+        for (int i = 0; i < n; i++) {
+            grausG1[i] = g1[i].length;
+            grausG2[i] = g2[i].length;
+        }
+
+        Arrays.sort(grausG1);
+        Arrays.sort(grausG2);
+
+        for (int i = 0; i < n; i++) {
+            if (grausG1[i] != grausG2[i]) return false;
+        }
+
+        int[] permutacio = new int[n];
+        for (int i = 0; i < n; i++) permutacio[i] = i;
+
+        do {
+            if (comprovaIsomorfisme(g1, g2, permutacio)) return true;
+        } while (proximaPermutacio(permutacio));
+
+        return false;
     }
+
+    // Comprova si g1 és isomorf a g2 sota la permutació donada
+    static boolean comprovaIsomorfisme(int[][] g1, int[][] g2, int[] perm) {
+        int n = perm.length;
+
+        for (int i = 0; i < n; i++) {
+            boolean[] adj1 = new boolean[n];
+            for (int veinat : g1[i]) {
+                adj1[perm[veinat]] = true;
+            }
+
+            boolean[] adj2 = new boolean[n];
+            for (int veinat : g2[perm[i]]) {
+                adj2[veinat] = true;
+            }
+
+            if (!Arrays.equals(adj1, adj2)) return false;
+        }
+
+        return true;
+    }
+
+    // Genera la següent permutació lexicogràfica
+    static boolean proximaPermutacio(int[] perm) {
+        int i = perm.length - 2;
+        while (i >= 0 && perm[i] >= perm[i + 1]) i--;
+        if (i < 0) return false;
+
+        int j = perm.length - 1;
+        while (perm[j] <= perm[i]) j--;
+
+        int tmp = perm[i];
+        perm[i] = perm[j];
+        perm[j] = tmp;
+
+        for (int k = i + 1, l = perm.length - 1; k < l; k++, l--) {
+            tmp = perm[k];
+            perm[k] = perm[l];
+            perm[l] = tmp;
+        }
+
+        return true;
+    }
+    
 
     /*
      * Determinau si el graf `g` (no dirigit) és un arbre. Si ho és, retornau el seu recorregut en
@@ -334,9 +493,53 @@ class Entrega {
      * En cas de ser un arbre, assumiu que l'ordre dels fills vé donat per l'array de veïns de cada
      * vèrtex.
      */
-    static int[] exercici3(int[][] g, int r) {
-      throw new UnsupportedOperationException("pendent");
+    static int[] exercici3(int[][] graf, int arrel) {
+        boolean[] visitat = new boolean[graf.length];
+        List<Integer> resultatPostordre = new ArrayList<>();
+
+        if (conteCicle(graf, arrel, -1, visitat)) return null;
+
+        for (boolean v : visitat) {
+            if (!v) return null;
+        }
+
+        Arrays.fill(visitat, false);
+        dfsPostordre(graf, arrel, visitat, resultatPostordre);
+
+        int[] resultat = new int[resultatPostordre.size()];
+        for (int i = 0; i < resultatPostordre.size(); i++) {
+            resultat[i] = resultatPostordre.get(i);
+        }
+
+        return resultat;
     }
+
+    // DFS per detectar cicles
+    static boolean conteCicle(int[][] graf, int actual, int pare, boolean[] visitat) {
+        visitat[actual] = true;
+
+        for (int veinat : graf[actual]) {
+            if (!visitat[veinat]) {
+                if (conteCicle(graf, veinat, actual, visitat)) return true;
+            } else if (veinat != pare) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // DFS postordre clàssic
+    static void dfsPostordre(int[][] graf, int actual, boolean[] visitat, List<Integer> resultat) {
+        visitat[actual] = true;
+        for (int veinat : graf[actual]) {
+            if (!visitat[veinat]) {
+                dfsPostordre(graf, veinat, visitat, resultat);
+            }
+        }
+        resultat.add(actual);
+    }
+    
 
     /*
      * Suposau que l'entrada és un mapa com el següent, donat com String per files (vegeu els tests)
@@ -363,9 +566,49 @@ class Entrega {
      * Si és impossible, retornau -1.
      */
     static int exercici4(char[][] mapa) {
-      throw new UnsupportedOperationException("pendent");
+        int files = mapa.length;
+        int columnes = mapa[0].length;
+        boolean[][] visitat = new boolean[files][columnes];
+
+        int[] movF = {-1, 1, 0, 0}; // Moviments verticals
+        int[] movC = {0, 0, -1, 1}; // Moviments horitzontals
+
+        ArrayList<int[]> cua = new ArrayList<>();
+
+        // Localitzar l'origen 'O'
+        for (int i = 0; i < files; i++) {
+            for (int j = 0; j < columnes; j++) {
+                if (mapa[i][j] == 'O') {
+                    cua.add(new int[]{i, j, 0});
+                    visitat[i][j] = true;
+                    break;
+                }
+            }
+        }
+
+        int idx = 0;
+        while (idx < cua.size()) {
+            int[] pos = cua.get(idx++);
+            int f = pos[0], c = pos[1], passos = pos[2];
+
+            if (mapa[f][c] == 'D') return passos;
+
+            for (int k = 0; k < 4; k++) {
+                int nf = f + movF[k];
+                int nc = c + movC[k];
+
+                if (nf >= 0 && nf < files && nc >= 0 && nc < columnes &&
+                    !visitat[nf][nc] && mapa[nf][nc] != '#') {
+                    visitat[nf][nc] = true;
+                    cua.add(new int[]{nf, nc, passos + 1});
+                }
+            }
+        }
+
+        return -1; // Destí no trobat
     }
 
+    
     /*
      * Aquí teniu alguns exemples i proves relacionades amb aquests exercicis (vegeu `main`)
      */
@@ -443,27 +686,76 @@ class Entrega {
      * Pista: https://en.wikipedia.org/wiki/Exponentiation_by_squaring
      */
     static int[] exercici1(String msg, int n, int e) {
-      throw new UnsupportedOperationException("pendent");
+        byte[] bytes = msg.getBytes();
+        int[] result = new int[bytes.length / 2];
+
+        for (int i = 0; i < bytes.length; i += 2) {
+            int b1 = bytes[i] & 0x7F;       //Ens assegurem que el valor està entre 0 i 127
+            int b2 = bytes[i + 1] & 0x7F;
+
+            int bloc = b1 * 128 + b2;       //Codificació de dos caràcters en un enter
+            result[i / 2] = elevar(bloc, e, n); //Encriptació RSA: bloc^e mod n
+        }
+
+        return result;
     }
 
-    /*
-     * Primer, desencriptau el missatge utilitzant xifrat RSA amb la clau pública donada. Després
-     * descodificau el missatge en blocs de longitud 2 amb codificació ASCII (igual que l'exercici
-     * anterior, però al revés).
-     *
-     * Per construir un String a partir d'un array de bytes podeu fer servir el constructor
-     * `new String(byte[])`. Si heu de factoritzar algun nombre, ho podeu fer per força bruta.
-     *
-     * També podeu suposar que:
-     * - La longitud del missatge original és múltiple de 2
-     * - El valor de tots els caràcters originals estava entre 32 i 127.
-     * - La clau pública (n, e) és de la forma vista a les transparències.
-     * - n és major que 2¹⁴, i n² és menor que Integer.MAX_VALUE
-     */
     static String exercici2(int[] m, int n, int e) {
-      throw new UnsupportedOperationException("pendent");
+        //Factorització simple de n = p * q
+        int p = 0, q = 0;
+        for (int i = 2; i * i <= n; i++) {
+            if (n % i == 0) {
+                p = i;
+                q = n / i;
+                break;
+            }
+        }
+
+        int phi = (p - 1) * (q - 1);        //Càlcul de φ(n)
+        int d = invertir(e, phi);           //Clau privada: inversa modular de e mod φ(n)
+
+        byte[] bytes = new byte[m.length * 2];
+        for (int i = 0; i < m.length; i++) {
+            int bloc = elevar(m[i], d, n);  //Desencriptació RSA: bloc^d mod n
+
+            //Reconstrucció dels dos caràcters originals
+            bytes[2 * i] = (byte) (bloc / 128);
+            bytes[2 * i + 1] = (byte) (bloc % 128);
+        }
+
+        return new String(bytes);
     }
 
+    static int elevar(int base, int exp, int mod) {
+        //Exponenciació modular eficient (exponentiation by squaring)
+        long result = 1;
+        long b = base % mod;
+        while (exp > 0) {
+            if ((exp & 1) == 1) {
+                result = (result * b) % mod;
+            }
+            b = (b * b) % mod;
+            exp >>= 1;
+        }
+        return (int) result;
+    }
+
+    static int invertir(int a, int m) {
+        //Algorisme d’Euclides estès per trobar la inversa modular de a mod m
+        int m0 = m, x0 = 0, x1 = 1;
+        while (a > 1) {
+            int q = a / m;
+            int t = m;
+            m = a % m;
+            a = t;
+
+            t = x0;
+            x0 = x1 - q * x0;
+            x1 = t;
+        }
+        return (x1 + m0) % m0;
+    }
+    
     static void tests() {
       // Exercici 1
       // Codificar i encriptar
@@ -523,5 +815,4 @@ class Entrega {
     }
   }
 }
-
 // vim: set textwidth=100 shiftwidth=2 expandtab :
