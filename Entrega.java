@@ -382,28 +382,28 @@ class Entrega {
       // Array per marcar els nodes ja visitats
         boolean[] visitat = new boolean[g.length];
 
-        // Recorrem cada node del graf
+        // Recor cada node del graf
         for (int v = 0; v < g.length; v++) {
-            // Si no ha estat visitat, comprovem si hi ha un cicle a partir d’aquest node
+            // Si no ha estat visitat, comprova si hi ha un cicle a partir d’aquest node
             if (!visitat[v] && teCicle(g, v, -1, visitat)) {
-                return true; // Si es troba un cicle, retornem true
+                return true; // Si es troba un cicle, retorna true
             }
         }
 
-        return false; // Si no es troba cap cicle, retornem false
+        return false; // Si no es troba cap cicle, retorna false
     }
 
     static boolean teCicle(int[][] g, int v, int pare, boolean[] visitat) {
-        // Marquem el node com a visitat
+        // Marca el node com a visitat
         visitat[v] = true;
 
-        // Recorrem els veïns del node actual
+        // Recor els veïns del node actual
         for (int veinat : g[v]) {
             if (!visitat[veinat]) {
-                // Si no ha estat visitat, fem una crida recursiva
+                // Si no ha estat visitat, es fa una crida recursiva
                 if (teCicle(g, veinat, v, visitat)) return true;
             } else if (veinat != pare) {
-                // Si ja ha estat visitat i no és el pare, hem trobat un cicle
+                // Si ja ha estat visitat i no és el pare, retorna true que vol dir que s'ha trobat un cicle
                 return true;
             }
         }
@@ -420,11 +420,11 @@ class Entrega {
       int n = g1.length;
         if (n != g2.length) return false; // Es comprova que tenguin la mateixa mida
 
-        // Inicialitzem permutació [0,1,2,...,n-1]
+        //S'inicialitza la permutació
         int[] perm = new int[n];
         for (int i = 0; i < n; i++) perm[i] = i;
 
-        // Provem totes les permutacions possibles
+        // Prova totes les permutacions possibles
         do {
             if (sónIsomorfs(g1, g2, perm)) return true;
         } while (nextPermutation(perm));
@@ -442,14 +442,14 @@ class Entrega {
             Set<Integer> veïns2 = new HashSet<>();
             for (int v : g2[perm[i]]) veïns2.add(v);
 
-            // Compareu els conjunts de veïns
+            // Compara els conjunts de veïns
             if (!veïns1.equals(veïns2)) return false;
         }
 
-        return true; // Són isomorfs sota aquesta permutació
+        return true; // Són isomorfs a aquesta permutació
     }
 
-    // Genera la següent permutació lexicogràfica
+    // Genera la següent permutació 
     static boolean nextPermutation(int[] a) {
         int i = a.length - 2;
         while (i >= 0 && a[i] >= a[i + 1]) i--;
@@ -479,7 +479,7 @@ class Entrega {
          boolean[] visitat = new boolean[g.length];
         List<Integer> postordre = new ArrayList<>();
 
-        // Verifiquem que és un arbre i construïm el postordre
+        // Verifica que és un arbre i construïm el postordre
         if (!comprovaArbreIPostordre(g, r, -1, visitat, postordre)) {
             return null;
         }
@@ -497,7 +497,7 @@ class Entrega {
         visitat[v] = true;
 
         for (int veinat : g[v]) {
-            if (veinat == pare) continue; // Ignorem el node pare
+            if (veinat == pare) continue; // Ignora el node pare
             if (visitat[veinat]) return false; // Trobat un cicle → no és arbre
             if (!comprovaArbreIPostordre(g, veinat, v, visitat, postordre)) return false;
         }
@@ -537,7 +537,7 @@ class Entrega {
         int cols = mapa[0].length;
         int origiX = -1, origiY = -1;
 
-        // Busquem la posició inicial 'O'
+        // Cerca la posició inicial 'O'
         for (int i = 0; i < files; i++) {
             for (int j = 0; j < cols; j++) {
                 if (mapa[i][j] == 'O') {
