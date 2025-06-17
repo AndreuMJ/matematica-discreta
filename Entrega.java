@@ -407,7 +407,7 @@ class Entrega {
         }
         return false;
     }
-    }
+    
 
     /*
      * Determinau si els dos grafs són isomorfs. Podeu suposar que cap dels dos té ordre major que
@@ -484,7 +484,7 @@ class Entrega {
 
         return true;
     }
-    }
+    
 
     /*
      * Determinau si el graf `g` (no dirigit) és un arbre. Si ho és, retornau el seu recorregut en
@@ -493,8 +493,7 @@ class Entrega {
      * En cas de ser un arbre, assumiu que l'ordre dels fills vé donat per l'array de veïns de cada
      * vèrtex.
      */
-    static int[] exercici3(int[][] g, int r) {
-     static int[] exercici3(int[][] graf, int arrel) {
+    static int[] exercici3(int[][] graf, int arrel) {
         boolean[] visitat = new boolean[graf.length];
         List<Integer> resultatPostordre = new ArrayList<>();
 
@@ -540,7 +539,7 @@ class Entrega {
         }
         resultat.add(actual);
     }
-    }
+    
 
     /*
      * Suposau que l'entrada és un mapa com el següent, donat com String per files (vegeu els tests)
@@ -567,7 +566,6 @@ class Entrega {
      * Si és impossible, retornau -1.
      */
     static int exercici4(char[][] mapa) {
-       static int exercici4(char[][] mapa) {
         int files = mapa.length;
         int columnes = mapa[0].length;
         boolean[][] visitat = new boolean[files][columnes];
@@ -609,9 +607,8 @@ class Entrega {
 
         return -1; // Destí no trobat
     }
-}
-    }
 
+    
     /*
      * Aquí teniu alguns exemples i proves relacionades amb aquests exercicis (vegeu `main`)
      */
