@@ -378,7 +378,7 @@ class Entrega {
     /*
      * Determinau si el graf `g` (no dirigit) té cicles.
      */
-    static boolean exercici1(int[][] graf) {
+    static boolean exercici1(int[][] g) {
       // Array per marcar els nodes visitats
         boolean[] visitat = new boolean[g.length];
 
