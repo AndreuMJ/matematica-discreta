@@ -210,7 +210,25 @@ class Entrega {
      * Pista: Cercau informació sobre els nombres de Stirling.
      */
     static int exercici1(int[] a) {
-      throw new UnsupportedOperationException("pendent");
+        int n = a.length;
+        int[][] matstirling = new int[n + 1][n + 1];
+
+        // Inicialización de la tabla
+        matstirling[0][0] = 1;
+
+        for (int i = 1; i <= n; i++) {
+            for (int j = 1; j <= i; j++) {
+                matstirling[i][j] = j * matstirling[i - 1][j] + matstirling[i - 1][j - 1];
+            }
+        }
+
+        // Sumar todos los S(n, k) para k = 1..n → número total de particiones 
+        int total = 0;
+        for (int k = 1; k <= n; k++) {
+        total += matstirling[n][k];
+        }
+
+        return total;
     }
 
     /*
@@ -221,7 +239,62 @@ class Entrega {
      * Si no existeix, retornau -1.
      */
     static int exercici2(int[] a, int[][] rel) {
-      throw new UnsupportedOperationException("pendent");
+        int n = a.length;
+
+        // Ordenar la relación lexicográficamente
+        int[][] relOrdenada = lexSorted(rel);
+
+        // Mapa de valor a índice en 'a'
+        int max = Arrays.stream(a).max().orElse(0);
+        int[] indexMap = new int[max + 1];
+        for (int i = 0; i < n; i++) {
+            indexMap[a[i]] = i;
+        }
+
+        // Crear matriz de adyacencia
+        boolean[][] mat = new boolean[n][n];
+        for (int[] par : relOrdenada) {
+            int u = indexMap[par[0]];
+            int v = indexMap[par[1]];
+            mat[u][v] = true;
+        }
+
+        // Clausura reflexiva
+        for (int i = 0; i < n; i++) {
+            mat[i][i] = true;
+        }
+
+        // Clausura transitiva
+        for (int k = 0; k < n; k++) {
+            for (int i = 0; i < n; i++) {
+                if (mat[i][k]) {
+                    for (int j = 0; j < n; j++) {
+                        if (mat[k][j]) {
+                            mat[i][j] = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Verificar antisimetría
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                if (i != j && mat[i][j] && mat[j][i]) {
+                    return -1; // No cumple antisimetría
+                }
+            }
+        }
+
+        // Contar el número de relaciones verdaderas
+        int total = 0;
+        for (boolean[] fila : mat) {
+            for (boolean valor : fila) {
+                if (valor) total++;
+            }
+        }
+
+        return total;
     }
 
     /*
@@ -232,7 +305,80 @@ class Entrega {
      * - null en qualsevol altre cas
      */
     static Integer exercici3(int[] a, int[][] rel, int[] x, boolean op) {
-      throw new UnsupportedOperationException("pendent");
+        int n = a.length;
+
+        // Mapear cada valor del array 'a' a su posición
+        int[] pos = new int[Arrays.stream(a).max().orElse(0) + 1];
+        for (int i = 0; i < n; i++) {
+            pos[a[i]] = i;
+        }
+
+        // Crear la matriz de adyacencia a partir de la relación dada
+        boolean[][] mat = new boolean[n][n];
+        for (int[] par : rel) {
+            int i = pos[par[0]];
+            int j = pos[par[1]];
+            mat[i][j] = true;
+        }
+
+        // Clausura transitiva 
+        for (int k = 0; k < n; k++)
+            for (int i = 0; i < n; i++)
+                for (int j = 0; j < n; j++)
+                    mat[i][j] |= mat[i][k] && mat[k][j];
+
+        // Convertimos la matriz de adyacencia en una relación usando generateRel
+        int[][] clausura = generateRel(a, a, (i, j) -> mat[pos[i]][pos[j]]);
+
+        // Volvemos a construir la matriz desde la clausura
+        boolean[][] matTransitiva = new boolean[n][n];
+        for (int[] par : clausura) {
+            int i = pos[par[0]];
+            int j = pos[par[1]];
+            matTransitiva[i][j] = true;
+        }
+
+        // Buscar candidatos a ínfimo (op == false) o supremo (op == true)
+        List<Integer> candidatos = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            boolean valido = true;
+            for (int val : x) {
+                int j = pos[val];
+                if (op) {
+                    // Supremo: val ≤ a[i], es decir, j → i
+                    if (!matTransitiva[j][i]) {
+                        valido = false;
+                        break;
+                    }
+                } else {
+                    // Ínfimo: a[i] ≤ val, es decir, i → j
+                    if (!matTransitiva[i][j]) {
+                        valido = false;
+                        break;
+                    }
+                }
+            }
+            if (valido) {
+                candidatos.add(a[i]);
+            }
+        }
+
+        if (candidatos.isEmpty()) return null;
+
+        // Buscar el mínimo (para supremo) o el máximo (para ínfimo) entre los candidatos
+        Integer resultado = candidatos.get(0);
+        for (int i = 1; i < candidatos.size(); i++) {
+            int valor = candidatos.get(i);
+            if (op) {
+                // Supremo: menor valor
+                if (valor < resultado) resultado = valor;
+            } else {
+                // Ínfimo: mayor valor
+                if (valor > resultado) resultado = valor;
+            }
+        }
+
+        return resultado;
     }
 
     /*
@@ -243,7 +389,31 @@ class Entrega {
      *  - Sinó, null.
      */
     static int[][] exercici4(int[] a, int[] b, Function<Integer, Integer> f) {
-      throw new UnsupportedOperationException("pendent");
+        // Mapeo de imagen: f(a[i]) → a[i]
+        var inversa = new ArrayList<int[]>();
+        var imagen = new boolean[Arrays.stream(b).max().getAsInt() + 1];
+        var preimagen = new int[b.length];
+        Arrays.fill(preimagen, a[0]); // valor por defecto arbitrari
+
+        var yaAsignado = new boolean[preimagen.length];
+
+        // Construimos la inversa por la izquierda (en la imatge de f)
+        for (int ai : a) {
+            int bi = f.apply(ai);
+            imagen[bi] = true;
+            preimagen[bi] = ai;
+            yaAsignado[bi] = true;
+        }
+
+        // Para valores de B sin imagen, asignamos un valor arbitrario de A
+        for (int bi : b) {
+            if (!yaAsignado[bi]) {
+                preimagen[bi] = a[0]; // cualquier valor de A sirve
+            }
+            inversa.add(new int[] { bi, preimagen[bi] });
+        }
+
+        return lexSorted(inversa.toArray(new int[0][]));
     }
 
     /*
